@@ -1,4 +1,3 @@
-PIL
 sqlite3
 pandas
 plotly
