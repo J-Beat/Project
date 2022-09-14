@@ -1,0 +1,8 @@
+streamlit==1.11.0
+PIL
+sqlite3
+pandas
+plotly==5.10.0 
+datetime
+dateutil
+sys
