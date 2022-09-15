@@ -1,3 +1,5 @@
+--upgrade pip
+sqlite3
 pandas
 plotly
 datetime
