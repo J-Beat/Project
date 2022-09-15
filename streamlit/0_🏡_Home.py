@@ -7,14 +7,14 @@ from inspect import getsourcefile
 from os.path import abspath
 
 path = str(abspath(getsourcefile(lambda:0)))
-sql_path = path.split('0_🏡_Home.py')[0] + '/DB/Credit.db'
-con = sqlite3.connect(sql_path)
+main_path = path.split('0_🏡_Home.py')[0]
+con = sqlite3.connect(f'{main_path}/DB/Credit.db')
 cur = con.cursor()
 
 st.set_page_config(page_title='Home')
 st.title("### 🏘 Ипотечный калькулятор")
 # st.subheader('Основные параметры')
-st.image('/home/ivan/Projects/streamlit/images/bird-cher-rech.jpg')
+st.image(f'{main_path}/images/bird-cher-rech.jpg')
 
 main_title = ['title', 'date_of_deal', 'body_of_credit', 'raid', 'number_of_periods', 'last_payment', 'monthly_payment']
 st.session_state.main_df = pd.DataFrame(cur.execute("SELECT * FROM credits").fetchall(), columns = main_title)
