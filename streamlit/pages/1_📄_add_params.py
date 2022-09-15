@@ -3,7 +3,7 @@ import datetime as dt
 from datetime import datetime
 from dateutil.relativedelta import *
 import sys
-sys.path.append('/home/ivan/Projects/streamlit/tools')
+# sys.path.append('/home/ivan/Projects/streamlit/tools')
 import tools as tool
 import sqlite3
 from inspect import getsourcefile
@@ -11,7 +11,7 @@ from os.path import abspath
 
 
 path = str(abspath(getsourcefile(lambda:0)))
-main_path = path.split('0_🏡_Home.py')[0]
+main_path = path.split('pages')[0]
 con = sqlite3.connect(f'{main_path}/DB/Credit.db')
 cur = con.cursor()
 
