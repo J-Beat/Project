@@ -8,8 +8,11 @@ import tools as tool
 import sqlite3
 
 
-con = sqlite3.connect("DB/Credit.db")
+path = str(abspath(getsourcefile(lambda:0)))
+main_path = path.split('0_🏡_Home.py')[0]
+con = sqlite3.connect(f'{main_path}/DB/Credit.db')
 cur = con.cursor()
+
 st.set_page_config(page_title='Add_main_params')
 st.header("### 💰 Добавить основные параметры")
 
