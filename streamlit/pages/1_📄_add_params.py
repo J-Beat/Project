@@ -6,6 +6,8 @@ import sys
 sys.path.append('/home/ivan/Projects/streamlit/tools')
 import tools as tool
 import sqlite3
+from inspect import getsourcefile
+from os.path import abspath
 
 
 path = str(abspath(getsourcefile(lambda:0)))
