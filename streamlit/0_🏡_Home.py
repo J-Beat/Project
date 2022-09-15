@@ -3,8 +3,12 @@ import sqlite3
 import pandas as pd
 import plotly.express as px
 import datetime as dt
+from inspect import getsourcefile
+from os.path import abspath
 
-con = sqlite3.connect("./DB/Credit.db")
+path = str(abspath(getsourcefile(lambda:0)))
+sql_path = path.split('0_🏡_Home.py')[0] + '/DB/Credit.db'
+con = sqlite3.connect(sql_path)
 cur = con.cursor()
 
 st.set_page_config(page_title='Home')
