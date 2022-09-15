@@ -4,7 +4,7 @@ import pandas as pd
 import plotly.express as px
 import datetime as dt
 
-con = sqlite3.connect("DB/Credit.db")
+con = sqlite3.connect("./DB/Credit.db")
 cur = con.cursor()
 
 st.set_page_config(page_title='Home')
