@@ -2,3 +2,4 @@ pandas
 plotly
 datetime
 python-dateutil
+streamlit_authenticator
