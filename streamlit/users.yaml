@@ -1,0 +1,21 @@
+cookie:
+  expiry_days: 30
+  key: some_signature_key
+  name: some_cookie_name
+credentials:
+  usernames:
+    izhukov:
+      email: vzmail@yandex.ru
+      name: Ivan
+      password: $2b$12$0dbqWmwkkS7pB26NDiVDFOKNYZnKzQnnDfEHcA5ddlXzXLXVqpb06
+    jsmith:
+      email: vzmail@yandex.ru
+      name: Ivan Zhukov
+      password: $2b$12$K9WIDdlG01fLW0vphdlB6.DPH5CkwR4B.2W8Om4vN.LQq0S5/hjdK
+    rbriggs:
+      email: rbriggs@gmail.com
+      name: Rebecca Briggs
+      password: $2b$12$njf3RdSDUHVkc0pKyKjt8OQQCo4kQIGmqKTxXVXs0LWrLH8vb7cja
+preauthorized:
+  emails:
+  - melsby@gmail.com
