@@ -38,3 +38,20 @@ def insert_to_db(cur, con, tuples):
     str_to_insert = f"INSERT INTO credits VALUES {tuples} "
     cur.execute(str_to_insert)
     con.commit()
+
+# def delete_credit(cur, con, name):
+#     str_del_table = 'DROP TABLE addresses'
+#     cur.execute(str_del_table)
+#     con.commit()
+
+def get_params_df(cur):
+    main_title = ['user', 'title', 'date_of_deal', 'body_of_credit', 'raid', 'number_of_periods', 'last_payment', 'monthly_payment']
+    df = pd.DataFrame(cur.execute("SELECT * FROM credits").fetchall(), columns = main_title)
+    return df
+
+def get_data_df(name, cur):
+    credit_title = ['date_payment', 'percent_part', 'general_part', 'body_of_credit', 'days']
+    df = pd.DataFrame(cur.execute(f"SELECT * FROM {name}").fetchall(), columns = credit_title).sort_values('date_payment')
+    df['date_payment'] = pd.to_datetime(st.session_state.credit_df['date_payment'], errors='coerce')
+    df = df[['date_payment', 'percent_part', 'general_part', 'body_of_credit']]
+    return df

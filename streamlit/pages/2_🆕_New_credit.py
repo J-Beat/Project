@@ -3,8 +3,8 @@ import datetime as dt
 from datetime import datetime
 from dateutil.relativedelta import *
 import sys
-# sys.path.append('/home/ivan/Projects/streamlit/tools')
-import tools as tool
+sys.path.append('/home/ivan/Projects/streamlit/tools')
+import streamlit_tools as tool
 import sqlite3
 from inspect import getsourcefile
 from os.path import abspath
@@ -20,10 +20,13 @@ if "authentication_status" in st.session_state:
         if st.session_state["authentication_status"]:
                 st.header("### 💰 Добавить основные параметры")
 
-                # st.write(st.session_state)
                 if 'all_params_added' in st.session_state:
                         st.subheader('Параметры кредита добавлены!')
                         st.write('Вы молодец🙂')
+                        add_new_cred = st.button('Добавить новый кредит')
+                        if add_new_cred:
+                                del st.session_state.all_params_added
+                                st.experimental_rerun()
                 else:
                         with st.form('Добавьте параметры:'):
                                 name_of_credit = st.text_input('Название кредита', help = 'Введите название латиницей без пробелов')
@@ -54,7 +57,7 @@ if "authentication_status" in st.session_state:
                                         if submit_all_params:
                                                 st.balloons()
                                                 st.session_state.all_params_added = True
-                                                data_to_insert = (name_of_credit, str(begin), body_of_credit, raid, number_of_periods, str(st.session_state.last_payment), st.session_state.monthly_payment)
+                                                data_to_insert = (st.session_state["name"], name_of_credit, str(begin), body_of_credit, raid, number_of_periods, str(st.session_state.last_payment), st.session_state.monthly_payment)
                                                 tool.insert_to_db(cur, con, data_to_insert)
                                                 df_cred = tool.cals_monthly_payments(begin,  body_of_credit, st.session_state.monthly_payment, raid, number_of_periods)
                                                 df_cred.to_sql(name_of_credit, con, index=False)
