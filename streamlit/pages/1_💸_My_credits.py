@@ -6,7 +6,6 @@ import datetime as dt
 from inspect import getsourcefile
 from os.path import abspath
 import sys
-sys.path.append('/home/ivan/Projects/streamlit/tools')
 import streamlit_tools as tool
 
 path = str(abspath(getsourcefile(lambda:0)))
@@ -20,11 +19,8 @@ if "authentication_status" in st.session_state:
                 st.title("Мои кредиты")
 
                 
-                st.session_state.main_df = tool.get_params_df(cur)
+                st.session_state.main_df = tool.get_params_df(cur, st.session_state["name"])
                 if len(st.session_state.main_df)>0:
-                        st.session_state.main_df = st.session_state.main_df[st.session_state.main_df['user'] == st.session_state["name"]]
-                        st.session_state.main_df = st.session_state.main_df[['title', 'date_of_deal', 'body_of_credit', 'raid', 'number_of_periods', 'last_payment', 'monthly_payment']]
-                        
                         credit_name = st.selectbox('Выберете кредит:', options = st.session_state.main_df['title'].unique())
 
                         st.session_state.credit_df = tool.get_data_df(credit_name, cur)
