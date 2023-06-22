@@ -51,7 +51,7 @@ def run_to_dict(d:dict) -> dict:
 
 
 def is_work_time():
-    now = datetime.now()
+    now : datetime = datetime.now()
     if datetime.utcnow().weekday() not in (5, 6):
         if (now.hour > 9) & (now.hour < 20):
             return True

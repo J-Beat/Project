@@ -17,8 +17,6 @@ from typing import List, Union
 # from aiogram.dispatcher.event import handler#.handler import CancelHandler
 # from aiogram.dispatcher.middlewares import BaseMiddleware
 
-CHATID = "-886375390"
-
 
 class MainMiddleware(BaseMiddleware):
     def __init__(self, sqlcon):
