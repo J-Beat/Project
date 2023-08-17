@@ -102,7 +102,7 @@ async def checking_reservation_order(sql_con:sql_con, bot:Bot):
         df['current_time'] = dt.datetime.now()
         df['time_delta'] = df['current_time'] - df['last_change']
         df['time_delta'] = df['time_delta'].apply(lambda x: int(x.seconds))
-        df = df[df['time_delta'] > 300]#43200
+        df = df[df['time_delta'] > 43200]#43200
         records = df.to_dict('records')
         for data in records:
             string_to_delivery = texts['texts']['warehouse']['new_order'].format(track= data['track_num'], country = data['country'], address = data['address'], password = data['pass'], desc = data['descriprion'], price = data['price'])#message.from_user.full_name
