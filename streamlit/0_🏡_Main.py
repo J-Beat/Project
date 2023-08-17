@@ -3,7 +3,8 @@ import streamlit_authenticator as stauth
 import yaml
 from os.path import abspath
 from inspect import getsourcefile
-
+import sys
+sys.path.append('/home/ivan//Projects/git/Project/streamlit/tools/')
 
 # hashed_passwords = stauth.Hasher(['123', '456']).generate()
 # print(hashed_passwords)
@@ -48,21 +49,9 @@ if st.session_state["authentication_status"] == None:
             st.error(e)
 
 else:
-    st.title("### 🏘 Ипотечный калькулятор")
+    st.title("🏡Ипотечный калькулятор")
     st.image(f'{main_path}/images/bird-cher-rech.jpg')
     st.subheader(f'Здравствуйте *{st.session_state["name"]}*')
     st.write('Здесь вы можете рассчитать кредит, следить за изменением своих кредитов и рассчитывать досрочное погашение.')            
 
 
-
-# reg = st.button('Регистрация')
-# if reg:
-#     # authenticator.register_user('Register user', preauthorization=False)
-#     st.success('User registered successfully')
-    # if authenticator.register_user('Register user', preauthorization=False):
-    #     st.success('User registered successfully')
-    # try:
-    #     if authenticator.register_user('Register user', preauthorization=False):
-    #         st.success('User registered successfully')
-    # except Exception as e:
-    #     st.error(e)

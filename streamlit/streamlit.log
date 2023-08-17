@@ -1,0 +1,18 @@
+
+Команда «run» не найдена. Возможно, вы имели в виду:
+
+  command 'rue' from snap darkdimension-rue (0.3.0)
+  command 'zrun' from deb moreutils (0.63-1)
+  command 'zun' from deb python3-zunclient (4.0.0-0ubuntu1)
+  command 'grun' from deb grun (0.9.3-2)
+  command 'crun' from deb crun (0.12.1+dfsg-1)
+  command 'rn' from deb trn4 (4.0-test77-12)
+  command 'srun' from deb slurm-client (19.05.5-1)
+  command 'runq' from deb exim4-daemon-heavy (4.93-13ubuntu1.6)
+  command 'runq' from deb exim4-daemon-light (4.93-13ubuntu1.6)
+  command 'runq' from deb sendmail-bin (8.15.2-18)
+  command 'rup' from deb rstat-client (4.0.1-9)
+  command 'runc' from deb runc (1.1.0-0ubuntu1~20.04.1)
+
+See 'snap info <snapname>' for additional versions.
+
