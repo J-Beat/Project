@@ -23,6 +23,11 @@ import datetime as dt
 import sqlite3
 import re
 from aiogram.types import InputMediaPhoto
+from inspect import getsourcefile
+from os.path import abspath
+import asyncio
+
+PATH = '/'.join(abspath(getsourcefile(lambda:0)).split('/')[:-2]) + '/'
 
 ADMIN_CHATID = func.get_config("CHATS_ID", "ADMIN_CHAT")
 WAREHOUSE_CHATID = func.get_config("CHATS_ID", "WAREHOUSE_CHAT")
@@ -110,7 +115,7 @@ async def price_input(message: types.Message, state: FSMContext, sql_con: sql_co
 async def impage_in(message: types.Message, state: FSMContext, sql_con: sql_con, bot: Bot):
     data = await state.get_data()
     track_id = data['track_in']
-    image_path = f'images/{track_id}_image_{str(dt.datetime.now())}.jpg'
+    image_path = PATH + f'images/{track_id}_image_{str(dt.datetime.now())}.jpg'
     file_id = message.photo[-1].file_id
     file = await bot.get_file(file_id)
     file_path = file.file_path
@@ -140,9 +145,8 @@ async def fin_pic(callback: types.CallbackQuery, bot:Bot, state: FSMContext, sql
 
 @managers_router.callback_query(Text("confirm_order"))
 async def confirm_new_order(callback: types.CallbackQuery, bot:Bot, state: FSMContext, sql_con: sql_con):#
-    await callback.message.delete_reply_markup()
-    await callback.answer()
     
+    await callback.message.delete_reply_markup()
     data = await state.get_data()
     track_id = data['track_in']
     country = data['country_in']
@@ -153,15 +157,23 @@ async def confirm_new_order(callback: types.CallbackQuery, bot:Bot, state: FSMCo
     image_path = data['image_in']
     try:
         sql_con.add_new_order(data=(track_id, country, address, password, desc, price, "|".join(image_path), "created", str(dt.datetime.now()), callback.from_user.id, re.sub("\"|\'", "", callback.from_user.full_name)))
-        await callback.message.answer(texts['texts']['managers']['created'], reply_markup= kb.main_keybord)
-
         string_to_warehouse = texts['texts']['warehouse']['new_order'].format(track= track_id, country = country, address = address, password = password, desc = desc, price = price, manager = callback.from_user.full_name)#message.from_user.full_name
         string_to_admin = texts['texts']['administrators']['new_order'].format(track= track_id, country = country, address = address, password = password, desc = desc, price = price, manager = callback.from_user.full_name)#message.from_user.full_name
-        msg_to_wh = await func.send_photo(chat_id= WAREHOUSE_CHATID, bot=bot, photo= image_path, caption= string_to_warehouse, reply_markup= kb.wh_keyboard)
+        med_to_wh, msg_to_wh = await func.send_photo(chat_id= WAREHOUSE_CHATID, bot=bot, photo= image_path, caption= string_to_warehouse, reply_markup= kb.wh_keyboard)
+        print("MEDIA_IDS --------", '|'.join([str(x.message_id) for x in med_to_wh]))
         sql_con.modify_order(track_id, 'warehouse_messageid', msg_to_wh.message_id)
-        await func.send_photo(chat_id= ADMIN_CHATID, bot = bot, photo= image_path, caption= string_to_admin, reply_markup=kb.admin_keyboard)
+        sql_con.modify_order(track_id, 'warehouse_mediaid', '|'.join([str(x.message_id) for x in med_to_wh]))
+        _, msg_to_admin = await func.send_photo(chat_id= ADMIN_CHATID, bot = bot, photo= image_path, caption= string_to_admin, reply_markup=kb.admin_keyboard)
+        sql_con.modify_order(track_id, 'admin_group_messageid', msg_to_admin.message_id)
+        await asyncio.sleep(3)
         await state.clear()
+        print("LEN DATA STATE --- ", await state.get_data())
         await state.set_state(ManagerStates.main)
+
+        await asyncio.sleep(1)
+        
+        await callback.message.answer(texts['texts']['managers']['created'], reply_markup= kb.main_keybord)
+        
 
     except(sqlite3.IntegrityError):
         await callback.message.answer(texts['texts']['managers']['double_track'].format(track_id= track_id), reply_markup=kb.change_keyboard)

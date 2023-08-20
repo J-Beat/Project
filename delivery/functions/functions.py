@@ -6,6 +6,15 @@ import requests
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardMarkup, InlineKeyboardMarkup, InputMediaPhoto, FSInputFile
 from aiogram import Bot
 from typing import Optional, Union, List
+import asyncio
+
+from inspect import getsourcefile
+from os.path import abspath
+
+# from aiogram.types.
+
+
+abspath(getsourcefile(lambda:0))
 
 
 
@@ -67,15 +76,20 @@ async def send_photo(photo:Union[str, list], caption:str, reply_markup:Union[Rep
         images.append(image)
     
     if message != None:
-        await id.answer_media_group(media=images)
-        returned_message = await id.answer(text= caption, reply_markup= reply_markup)
+        returned_mediaid = await message.answer_media_group(media=images)
+        returned_messageid = await message.answer(text= caption, reply_markup= reply_markup)
     elif (chat_id != None) & (bot != None):
-        await bot.send_media_group(chat_id= chat_id, media = images)
-        returned_message = await bot.send_message(chat_id= chat_id, text = caption, reply_markup= reply_markup)
-    return returned_message
+        returned_mediaid = await bot.send_media_group(chat_id= chat_id, media = images)
+        returned_messageid = await bot.send_message(chat_id= chat_id, text = caption, reply_markup= reply_markup)
+    return returned_mediaid, returned_messageid
 
     
 # Optional[Union[InputFile, str]] = None
+
+async def delete_media(media_ids: str, chat_id: str, bot: Bot):
+    media_ids = media_ids.split('|')
+    for media_id in media_ids:
+        await bot.delete_message(chat_id = chat_id, message_id = int(media_id))
 
 
 texts = run_to_dict(get_texts('main'))
