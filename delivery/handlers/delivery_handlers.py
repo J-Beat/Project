@@ -44,13 +44,15 @@ async def change_order(callback: types.CallbackQuery, state: FSMContext, sql_con
     media_to_deliver, message_to_deliver = await func.send_photo(chat_id=callback.from_user.id, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("НОВЫЙ ЗАКАЗ\n", "Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.\n"), reply_markup=kb.delivery_private_keyboard)
     sql_con.modify_order(order_id, 'delivery_private_messageid', message_to_deliver.message_id)
     sql_con.modify_order(order_id, 'delivery_private_mediaid', '|'.join([str(x.message_id) for x in media_to_deliver]))
-    # await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("НОВЫЙ ЗАКАЗ\n", f"Заказ принят курьером -- {callback.from_user.full_name}\n"), reply_markup=kb.admin_keyboard)
-    
+    # 
     if data['admin_group_messageid'] != None:
         await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= callback.message.text.replace("НОВЫЙ ЗАКАЗ\n", f"Заказ принят курьером -- {callback.from_user.full_name}\n"), reply_markup=kb.admin_keyboard)
+    else:
+        await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("НОВЫЙ ЗАКАЗ\n", f"Заказ принят курьером -- {callback.from_user.full_name}\n"), reply_markup=kb.admin_keyboard)
     if data['warehouse_messageid'] != None:
         await bot.edit_message_text(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']), text= callback.message.text.replace("НОВЫЙ ЗАКАЗ\n", f"Заказ принят курьером -- {callback.from_user.full_name}\n"), reply_markup=kb.admin_keyboard)
-    
+    else:
+        await func.send_photo(chat_id=WAREHOUSE_CHATID, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("НОВЫЙ ЗАКАЗ\n", f"Заказ принят курьером -- {callback.from_user.full_name}\n"), reply_markup=kb.admin_keyboard)
     
     await callback.answer()
 

@@ -30,7 +30,12 @@ class sql_connect:
             delivery_group_messageid TEXT,
             deliveryman_id TEXT,
             deliveryman_name TEXT,
-            delivery_private_messageid);
+            delivery_private_messageid TEXT,
+            admin_group_messageid TEXT,
+            warehouse_mediaid TEXT,
+            delivery_group_mediaid TEXT,
+            delivery_private_mediaid TEXT
+            );
             """)
         self.con.commit()
 

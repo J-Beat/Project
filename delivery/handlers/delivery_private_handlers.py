@@ -46,11 +46,13 @@ async def took_order(callback: types.CallbackQuery, state: FSMContext, sql_con:s
         sql_con.modify_order(order_id, 'stage', 'deliveryman_picked_up_order')
 
         await callback.message.edit_text(text = callback.message.text.replace("Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.", "Вы забрали заказ. Нажмите кнопку \"Заказ доставлен\" когда доставите заказ.\n\n"), reply_markup=kb.delivery_delivered_keyboard)
-        # await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.", f"Курьер {callback.from_user.full_name} забрал заказ.\n"), reply_markup=kb.admin_keyboard)
-    
+        
         if data['admin_group_messageid'] != None:
             await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= callback.message.text.replace("Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.", f"Курьер {callback.from_user.full_name} забрал заказ.\n"))
+        else:
+            await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.", f"Курьер {callback.from_user.full_name} забрал заказ.\n"), reply_markup=kb.admin_keyboard)
     
+
     else:
         bot.send_message(callback.from_user.id, text=texts['texts']['delivery']['dont_take'])
     await callback.answer()
@@ -78,11 +80,12 @@ async def cant_take_order(callback: types.CallbackQuery, state: FSMContext, sql_
     order_id = re.search("- Трек номер -- .+?;", callback.message.text)[0].split(' -- ')[1][:-1]
     data = sql_con.get_order(order_id)
     sql_con.modify_order(order_id, 'stage', 'delivered')
-    # await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = texts['texts']['delivery']['delivered'].format(deliverman = re.sub('[^ \w\d]', "", callback.from_user.full_name), order = re.sub(".+\n\n", "", callback.message.text)), reply_markup=kb.admin_keyboard)
-    
+     
     if data['admin_group_messageid'] != None:
         await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= texts['texts']['delivery']['delivered'].format(deliverman = re.sub('[^ \w\d]', "", callback.from_user.full_name), order = order_id))
-    
+    else:
+        await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = texts['texts']['delivery']['delivered'].format(deliverman = re.sub('[^ \w\d]', "", callback.from_user.full_name), order = re.sub(".+\n\n", "", callback.message.text)), reply_markup=kb.admin_keyboard)
+
     
     await callback.answer()
     
@@ -97,12 +100,12 @@ async def problem_w_order(message: types.Message, state: FSMContext, sql_con:sql
     print(new_message)
     new_message = new_message.replace("Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.", f"#order_not_taken\nКурьер {message.from_user.full_name} не смог забрать заказ.\n\n")
     sql_con.modify_order(order_id, 'stage', 'deliveryman_CANT_take_order')
-    # await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = new_message, reply_markup=kb.admin_keyboard)
-    
+    #     
     if data['admin_group_messageid'] != None:
         await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= new_message, reply_markup=kb.admin_keyboard)
-    
-    
+    else:
+        await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = new_message, reply_markup=kb.admin_keyboard)
+
     await message.answer(text=texts['texts']['delivery']['send_to_administrators'])
     await state.set_state(DeliveryStates.main)
     
@@ -118,6 +121,7 @@ async def checking_reservation_order(sql_con:sql_con, bot:Bot):
         df['time_delta'] = df['time_delta'].apply(lambda x: int(x.seconds))
         df = df[df['time_delta'] > 43200]#43200
         records = df.to_dict('records')
+        print('RECORDS ----- ', records)
         for data in records:
             string_to_delivery = texts['texts']['warehouse']['new_order'].format(track= data['track_num'], country = data['country'], address = data['address'], password = data['pass'], desc = data['descriprion'], price = data['price'])#message.from_user.full_name
             image = data['path_image']
@@ -125,13 +129,14 @@ async def checking_reservation_order(sql_con:sql_con, bot:Bot):
                 await bot.edit_message_text(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']), text= string_to_delivery.replace("Создан новый заказ:\n", texts['texts']['delivery']["dont_take"]+"\n\n"))
             # await bot.send_message(chat_id = data['deliveryman_id'], text=texts['texts']['delivery']['dont_take'])
             except aiogram.exceptions.TelegramBadRequest:
-                logger.info("Order not have delivaryman_id in db")
+                logger.info(f"Order not have delivaryman_id in db. Order id -- {data['track_num']}")
+            except TypeError:
+                await func.send_photo(chat_id = data['deliveryman_id'], bot = bot, photo=image, caption = string_to_delivery.replace("Создан новый заказ:\n", texts['texts']['delivery']["dont_take"]+"\n\n"), reply_markup = None)
             msg_to_delivery = await func.send_photo(chat_id=DELIVERY_CHAT, bot = bot, photo=image, caption = string_to_delivery.replace("Создан новый заказ:\n", "НОВЫЙ ЗАКАЗ\n\n"), reply_markup=kb.delivery_group_keyboard)
-            # await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=image, caption = string_to_delivery.replace("Создан новый заказ:\n", "КУРЬЕР НЕ ЗАБРАЛ ЗАКАЗ И ОН ОТПРАВИЛСЯ СНОВА В ГРУППУ КУРЬЕРОВ\n\n"), reply_markup=kb.admin_keyboard)
-            
             if data['admin_group_messageid'] != None:
                 await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= string_to_delivery.replace("Создан новый заказ:\n", "КУРЬЕР НЕ ЗАБРАЛ ЗАКАЗ И ОН ОТПРАВИЛСЯ СНОВА В ГРУППУ КУРЬЕРОВ\n\n"), reply_markup=kb.admin_keyboard)
-    
+            else:
+                await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=image, caption = string_to_delivery.replace("Создан новый заказ:\n", "КУРЬЕР НЕ ЗАБРАЛ ЗАКАЗ И ОН ОТПРАВИЛСЯ СНОВА В ГРУППУ КУРЬЕРОВ\n\n"), reply_markup=kb.admin_keyboard)
             
             sql_con.modify_order(data['track_num'], 'stage', 'in_warehouse')
             sql_con.modify_order(data['track_num'], 'deliveryman_id', '')
