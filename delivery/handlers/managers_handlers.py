@@ -38,12 +38,35 @@ managers_router = Router()  # [1]
 @managers_router.message(Command(commands=["start"]))
 async def start(message: types.Message, state: FSMContext, sql_con: sql_con, bot:Bot):
     if message.chat.type == 'private':
-        await message.answer(texts['texts']['managers']['greating'], reply_markup=kb.main_keybord, disable_web_page_preview=True)
-        print("TYPE USER --- ", type(message.from_user))
+        await message.answer(texts['texts']['managers']['greating'], reply_markup=kb.choise_keyboard, disable_web_page_preview=True)
         await state.clear()
+
+@managers_router.callback_query(Text("manager"))
+async def manager(callback: types.CallbackQuery, state: FSMContext, sql_con: sql_con, bot:Bot):
+    await callback.message.delete_reply_markup()
+    await callback.message.answer(texts['texts']['managers']['manager_passin'])
+    await state.set_state(ManagerStates.manager_pass_in)
+
+@managers_router.message(StateFilter(ManagerStates.manager_pass_in), F.text)
+async def pass_in(message: types.Message, state: FSMContext, sql_con: sql_con, bot:Bot):
+    if message.text == 'te1egram_bo7':
+        await message.answer(texts['texts']['managers']['manager_right_pass'], reply_markup=kb.new_order_keybord)
         await state.set_state(ManagerStates.main)
+    else:
+        await message.answer(texts['texts']['managers']['manager_wrong_pass'], reply_markup=kb.back_keyboard)
+
+@managers_router.callback_query(Text("back"))
+async def back_to_start(callback: types.CallbackQuery, state: FSMContext, sql_con: sql_con, bot:Bot):
+    await callback.message.delete_reply_markup()
+    await state.clear()
+    await callback.message.answer(texts['texts']['managers']['greating'], reply_markup=kb.choise_keyboard, disable_web_page_preview=True)
 
 
+@managers_router.callback_query(Text("deliver"))
+async def back_to_start(callback: types.CallbackQuery, state: FSMContext, sql_con: sql_con, bot:Bot):
+    await callback.message.delete_reply_markup()
+    keyboard_to_delete = types.ReplyKeyboardRemove() 
+    await callback.message.answer(texts['texts']['managers']['deliver_greatings'], reply_markup=keyboard_to_delete)
 
 
 @managers_router.message(CommandFilter(texts['keyboards'].values()), StateFilter(ManagerStates.main), F.text)
@@ -172,7 +195,7 @@ async def confirm_new_order(callback: types.CallbackQuery, bot:Bot, state: FSMCo
 
         await asyncio.sleep(1)
         
-        await callback.message.answer(texts['texts']['managers']['created'], reply_markup= kb.main_keybord)
+        await callback.message.answer(texts['texts']['managers']['created'], reply_markup= kb.new_order_keybord)
         
 
     except(sqlite3.IntegrityError):

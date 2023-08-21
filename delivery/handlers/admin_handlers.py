@@ -22,6 +22,7 @@ from aiogram.filters import Text
 import datetime as dt
 import sqlite3
 import re
+import aiogram
 
 
 ADMIN_CHATID = func.get_config("CHATS_ID", "ADMIN_CHAT")
@@ -40,21 +41,25 @@ async def close_order(callback: types.CallbackQuery, state: FSMContext, sql_con:
     new_message = re.sub(".+\n\n", "ЗАКАЗ ЗАКРЫТ\n", callback.message.text)
 
     if data['delivery_group_messageid'] != None:
-        # await bot.edit_message_text(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']), text= new_message)
-        await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
-        # await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_mediaid']))
-        await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+        try:
+            await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
+            await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+        except aiogram.exceptions.TelegramBadRequest:
+            pass
+
     if data['delivery_private_messageid'] != None:
         if data['deliveryman_id'] != '':
-            # await bot.edit_message_text(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']), text= new_message)
-            await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
-            # await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_mediaid']))
-            await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+            try:
+                await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
+                await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+            except aiogram.exceptions.TelegramBadRequest:
+                pass
     if data['warehouse_messageid'] != None:
-        # await bot.edit_message_text(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']), text= new_message)
-        await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
-        # await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_mediaid']))
-        await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+        try:
+            await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
+            await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+        except aiogram.exceptions.TelegramBadRequest:
+                pass
 
     await callback.message.edit_text(text=new_message)
     await callback.answer()
@@ -70,21 +75,25 @@ async def order_not_delivered(callback: types.CallbackQuery, state: FSMContext, 
     new_message_to_admin = re.sub(".+\n\n", "#not_delivered\nПосылка не поступила\n", callback.message.text)
 
     if data['delivery_group_messageid'] != None:
-        # await bot.edit_message_text(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']), text= new_message_to_all)
-        await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
-        # await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_mediaid']))
-        await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+        try:
+            await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
+            await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+        except aiogram.exceptions.TelegramBadRequest:
+            pass
+
     if data['delivery_private_messageid'] != None:
         if data['deliveryman_id'] != '':
-            # await bot.edit_message_text(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']), text= new_message_to_all)
-            await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
-            # await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_mediaid']))
-            await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+            try:
+                await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
+                await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+            except aiogram.exceptions.TelegramBadRequest:
+                pass
     if data['warehouse_messageid'] != None:
-        # await bot.edit_message_text(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']), text= new_message_to_all)
-        await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
-        # await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_mediaid']))
-        await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+        try:
+            await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
+            await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+        except aiogram.exceptions.TelegramBadRequest:
+                pass
 
     await callback.message.edit_text(text=new_message_to_admin)
     await callback.answer()

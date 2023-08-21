@@ -27,13 +27,13 @@ def create_dict_keyboards(keys: dict) -> list:
 print()
 m = [[types.KeyboardButton(text = texts['keyboards']['manager_main'])]]
 
-main_keybord = types.ReplyKeyboardMarkup(keyboard= m, resize_keyboard=True, one_time_keyboard=True)
+new_order_keybord = types.ReplyKeyboardMarkup(keyboard= m, resize_keyboard=True, one_time_keyboard=True)
 
-# faq_keyboards = create_dict_keyboards(texts['keyboards']['faq'])
+choise_buttons = [[InlineKeyboardButton(text = texts['keyboards']['manager'], callback_data='manager'), InlineKeyboardButton(text = texts['keyboards']['deliver'], callback_data='deliver')]]
+choise_keyboard = InlineKeyboardMarkup(inline_keyboard = choise_buttons, resize_keyboard = True)
 
-# faq_main_keyboards = make_keyboard(texts['keyboards']['faq']['main'])
-
-# faq_registry_keyboard = make_keyboard(texts['keyboards']['faq']['registry'])
+back_buttons = [[InlineKeyboardButton(text = texts['keyboards']['back'], callback_data='back')]]
+back_keyboard = InlineKeyboardMarkup(inline_keyboard = back_buttons, resize_keyboard = True)
 
 
 # INLINE KEYBOARDS

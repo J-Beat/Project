@@ -57,7 +57,7 @@ async def start_bot():
 
 
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(checking_reservation_order, "interval", seconds=600, args=(sql_con, bot))
+    scheduler.add_job(checking_reservation_order, "interval", seconds=1800, args=(sql_con, bot))
     scheduler.start()
     
     

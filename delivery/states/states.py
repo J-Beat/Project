@@ -4,6 +4,7 @@ from aiogram.filters.state import State, StatesGroup
 
 # States
 class ManagerStates(StatesGroup):
+    manager_pass_in = State()
     main = State()
     country_in = State()
     address_in = State()
