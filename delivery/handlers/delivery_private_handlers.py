@@ -132,7 +132,7 @@ async def checking_reservation_order(sql_con:sql_con, bot:Bot):
                 logger.info(f"Order not have delivaryman_id in db. Order id -- {data['track_num']}")
             except TypeError:
                 await func.send_photo(chat_id = data['deliveryman_id'], bot = bot, photo=image, caption = string_to_delivery.replace("Создан новый заказ:\n", texts['texts']['delivery']["dont_take"]+"\n\n"), reply_markup = None)
-            msg_to_delivery = await func.send_photo(chat_id=DELIVERY_CHAT, bot = bot, photo=image, caption = string_to_delivery.replace("Создан новый заказ:\n", "НОВЫЙ ЗАКАЗ\n\n"), reply_markup=kb.delivery_group_keyboard)
+            med_to_delivery, msg_to_delivery = await func.send_photo(chat_id=DELIVERY_CHAT, bot = bot, photo=image, caption = string_to_delivery.replace("Создан новый заказ:\n", "НОВЫЙ ЗАКАЗ\n\n"), reply_markup=kb.delivery_group_keyboard)
             if data['admin_group_messageid'] != None:
                 await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= string_to_delivery.replace("Создан новый заказ:\n", "КУРЬЕР НЕ ЗАБРАЛ ЗАКАЗ И ОН ОТПРАВИЛСЯ СНОВА В ГРУППУ КУРЬЕРОВ\n\n"), reply_markup=kb.admin_keyboard)
             else:
@@ -142,3 +142,4 @@ async def checking_reservation_order(sql_con:sql_con, bot:Bot):
             sql_con.modify_order(data['track_num'], 'deliveryman_id', '')
             sql_con.modify_order(data['track_num'], 'deliveryman_name', '')
             sql_con.modify_order(data['track_num'], 'delivery_group_messageid', msg_to_delivery.message_id)
+            sql_con.modify_order(data['track_num'], 'delivery_group_mediaid', '|'.join([str(x.message_id) for x in med_to_delivery]))
