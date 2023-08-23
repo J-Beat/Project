@@ -99,8 +99,8 @@ async def delete_media(media_ids: str, chat_id: str, bot: Bot):
 async def delete_message(bot: Bot, chat: str, message_id: str, media_id: str):
     if message_id != None:
         try:
-            await bot.delete_message(chat_id = chat, message_id = int(message_id))
             await delete_media(media_id, chat, bot)
+            await bot.delete_message(chat_id = chat, message_id = int(message_id))
         except aiogram.exceptions.TelegramBadRequest:
             pass
 
