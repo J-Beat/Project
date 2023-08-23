@@ -10,6 +10,8 @@ import asyncio
 
 from inspect import getsourcefile
 from os.path import abspath
+import aiogram
+from functions.sql_functions import sql_connect
 
 # from aiogram.types.
 
@@ -67,7 +69,7 @@ def is_work_time():
     else:
         return False
 
-async def send_photo(photo:Union[str, list], caption:str, reply_markup:Union[ReplyKeyboardMarkup, InlineKeyboardMarkup], message: Optional[Message] = None, chat_id: Optional[str] = None, bot: Optional[Bot] = None) -> Union[Message, None]:
+async def send_photo(photo:Union[str, list], caption:str, sql_con:Optional[sql_connect] = None, chat:Optional[str] = None, order_id: Optional[str] = None, reply_markup:Optional[Union[ReplyKeyboardMarkup, InlineKeyboardMarkup]] = None, message: Optional[Message] = None, chat_id: Optional[str] = None, bot: Optional[Bot] = None) -> None:
     if type(photo) == str:
         photo = photo.split('|')
     images: List = []
@@ -81,7 +83,10 @@ async def send_photo(photo:Union[str, list], caption:str, reply_markup:Union[Rep
     elif (chat_id != None) & (bot != None):
         returned_mediaid = await bot.send_media_group(chat_id= chat_id, media = images)
         returned_messageid = await bot.send_message(chat_id= chat_id, text = caption, reply_markup= reply_markup)
-    return returned_mediaid, returned_messageid
+    if sql_con != None:
+        sql_con.modify_order(order_id, f'{chat}_messageid', returned_messageid.message_id)
+        sql_con.modify_order(order_id, f'{chat}_mediaid', '|'.join([str(x.message_id) for x in returned_mediaid]))
+    #return returned_mediaid, returned_messageid
 
     
 # Optional[Union[InputFile, str]] = None
@@ -90,6 +95,14 @@ async def delete_media(media_ids: str, chat_id: str, bot: Bot):
     media_ids = media_ids.split('|')
     for media_id in media_ids:
         await bot.delete_message(chat_id = chat_id, message_id = int(media_id))
+
+async def delete_message(bot: Bot, chat: str, message_id: str, media_id: str):
+    if message_id != None:
+        try:
+            await bot.delete_message(chat_id = chat, message_id = int(message_id))
+            await delete_media(media_id, chat, bot)
+        except aiogram.exceptions.TelegramBadRequest:
+            pass
 
 
 texts = run_to_dict(get_texts('main'))

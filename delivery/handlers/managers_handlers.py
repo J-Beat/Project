@@ -182,12 +182,10 @@ async def confirm_new_order(callback: types.CallbackQuery, bot:Bot, state: FSMCo
         sql_con.add_new_order(data=(track_id, country, address, password, desc, price, "|".join(image_path), "created", str(dt.datetime.now()), callback.from_user.id, re.sub("\"|\'", "", callback.from_user.full_name)))
         string_to_warehouse = texts['texts']['warehouse']['new_order'].format(track= track_id, country = country, address = address, password = password, desc = desc, price = price, manager = callback.from_user.full_name)#message.from_user.full_name
         string_to_admin = texts['texts']['administrators']['new_order'].format(track= track_id, country = country, address = address, password = password, desc = desc, price = price, manager = callback.from_user.full_name)#message.from_user.full_name
-        med_to_wh, msg_to_wh = await func.send_photo(chat_id= WAREHOUSE_CHATID, bot=bot, photo= image_path, caption= string_to_warehouse, reply_markup= kb.wh_keyboard)
-        print("MEDIA_IDS --------", '|'.join([str(x.message_id) for x in med_to_wh]))
-        sql_con.modify_order(track_id, 'warehouse_messageid', msg_to_wh.message_id)
-        sql_con.modify_order(track_id, 'warehouse_mediaid', '|'.join([str(x.message_id) for x in med_to_wh]))
-        _, msg_to_admin = await func.send_photo(chat_id= ADMIN_CHATID, bot = bot, photo= image_path, caption= string_to_admin, reply_markup=kb.admin_keyboard)
-        sql_con.modify_order(track_id, 'admin_group_messageid', msg_to_admin.message_id)
+        await func.send_photo(chat_id= WAREHOUSE_CHATID, sql_con=sql_con, order_id=track_id, chat= 'warehouse', bot=bot, photo= image_path, caption= string_to_warehouse, reply_markup= kb.wh_keyboard)
+        # print("MEDIA_IDS --------", '|'.join([str(x.message_id) for x in med_to_wh]))
+
+        await func.send_photo(chat_id= ADMIN_CHATID, sql_con=sql_con, order_id=track_id, chat= 'admin_group', bot = bot, photo= image_path, caption= string_to_admin, reply_markup=kb.admin_keyboard)
         await asyncio.sleep(3)
         await state.clear()
         print("LEN DATA STATE --- ", await state.get_data())

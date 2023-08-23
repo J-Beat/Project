@@ -24,6 +24,7 @@ import sqlite3
 import re
 import asyncio
 import time
+from logging import Logger
 
 
 ADMIN_CHATID = func.get_config("CHATS_ID", "ADMIN_CHAT")
@@ -33,21 +34,24 @@ WAREHOUSE_CHATID = func.get_config("CHATS_ID", "WAREHOUSE_CHAT")
 warehouse_router = Router() 
 
 
+
 @warehouse_router.callback_query(Text("wh_in_work"))
 async def order_in_wh_work(callback: types.CallbackQuery, state: FSMContext, sql_con:sql_con, bot:Bot):
-    await callback.message.edit_text(text = "ЗАКАЗ В РАБОТЕ\n\n" + callback.message.text.replace("Создан новый заказ:\n", ""))
-    await callback.message.edit_reply_markup(reply_markup=kb.wh_keyboard_worked)
-    warehouser_name = re.sub("\"|\'", "", callback.from_user.full_name)
     order_id = re.search("- Трек номер -- .+?;", callback.message.text)[0].split(' -- ')[1][:-1]
+    data = sql_con.get_order(order_id)
+    print(f"order_in_work_wh -- {order_id}")
+    order_message = texts['texts']['order_info'].format(track= data['track_num'], country = data['country'], address = data['address'], password = data['pass'], desc = data['descriprion'], price = data['price'])#message.from_user.full_name
+    await callback.message.edit_text(text = f"ЗАКАЗ В РАБОТЕ\n\n{order_message}", reply_markup=kb.wh_keyboard_worked)
+
+    warehouser_name = re.sub("\"|\'", "", callback.from_user.full_name)
     sql_con.modify_order(order_id, 'stage', 'accepted_warehouse_employee')
     sql_con.modify_order(order_id, 'warehouser_id', callback.from_user.id)
     sql_con.modify_order(order_id, 'warehouser_name', warehouser_name)
-    data = sql_con.get_order(order_id)
-    # 
+        # 
     if data['admin_group_messageid'] != None:
-        await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= callback.message.text.replace("Создан новый заказ:\n\n", "ЗАКАЗ ПРИНЯТ В РАБОТУ РАБОТНИКОМ СКЛАДА\n\n") + f"\n- Принял в работу -- {warehouser_name}", reply_markup=kb.admin_keyboard)
+        await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= f"ЗАКАЗ ПРИНЯТ В РАБОТУ РАБОТНИКОМ СКЛАДА\n\n{order_message}\n- Принял в работу -- {warehouser_name}", reply_markup=kb.admin_keyboard)
     else:
-        await func.send_photo(chat_id= ADMIN_CHATID, bot = bot, photo= data['path_image'], caption= "ЗАКАЗ ПРИНЯТ В РАБОТУ РАБОТНИКОМ СКЛАДА\n\n" + callback.message.text.replace("Создан новый заказ:\n\n", "") + f"\n- Принял в работу -- {warehouser_name}", reply_markup=kb.admin_keyboard)
+        await func.send_photo(chat_id= ADMIN_CHATID, sql_con=sql_con, order_id=order_id, chat= 'admin_group', bot = bot, photo= data['path_image'], caption= f"ЗАКАЗ ПРИНЯТ В РАБОТУ РАБОТНИКОМ СКЛАДА\n\n{order_message}\n- Принял в работу -- {warehouser_name}", reply_markup=kb.admin_keyboard)
     await callback.answer()
 
 
@@ -57,22 +61,21 @@ async def anti_flood(*args, **kwargs):
 
 @warehouse_router.callback_query(Text("wh_in_wh"))
 async def order_in_wh(callback: types.CallbackQuery, state: FSMContext, sql_con:sql_con, bot:Bot):
-    print('ORDER IN WH ------- ')
     await callback.message.delete_reply_markup()
     order_id = re.search("- Трек номер -- .+?;", callback.message.text)[0].split(' -- ')[1][:-1]
     data = sql_con.get_order(order_id)
+    print(f"order_in_wh -- {order_id}")
+    order_message = texts['texts']['order_info'].format(track= data['track_num'], country = data['country'], address = data['address'], password = data['pass'], desc = data['descriprion'], price = data['price'])#message.from_user.full_name
+    
     sql_con.modify_order(order_id, 'stage', 'in_warehouse')
-    # await callback.message.id
     await callback.message.edit_text(text = callback.message.text.replace("ЗАКАЗ В РАБОТЕ\n", "ЗАКАЗ НА СКЛАДЕ\n"))
-    # 
+    
     if data['admin_group_messageid'] != None:
         await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= callback.message.text.replace("ЗАКАЗ В РАБОТЕ\n", "ЗАКАЗ НА СКЛАДЕ\n"), reply_markup=kb.admin_keyboard)
     else:
-        await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("ЗАКАЗ В РАБОТЕ\n", "ЗАКАЗ НА СКЛАДЕ\n"), reply_markup=kb.admin_keyboard)
+        await func.send_photo(chat_id=ADMIN_CHATID, sql_con=sql_con, order_id=order_id, chat= 'admin_group', bot = bot, photo=data['path_image'], caption = callback.message.text.replace("ЗАКАЗ В РАБОТЕ\n", "ЗАКАЗ НА СКЛАДЕ\n"), reply_markup=kb.admin_keyboard)
     await asyncio.sleep(5)
-    media_to_delivery_chat, messge_to_deivery_chat = await func.send_photo(chat_id=DELIVERY_CHAT, bot = bot, photo=data['path_image'], caption = callback.message.text.replace("ЗАКАЗ В РАБОТЕ\n", "НОВЫЙ ЗАКАЗ\n") + "\n\n Перед тем как взять заказ неободимо зарегистрироваться в <b><a href='https://t.me/Izhukov_test_bot'>боте</a></b>", reply_markup=kb.delivery_group_keyboard)
-    sql_con.modify_order(order_id, 'delivery_group_messageid', messge_to_deivery_chat.message_id)
-    sql_con.modify_order(order_id, 'delivery_group_mediaid', '|'.join([str(x.message_id) for x in media_to_delivery_chat]))
+    await func.send_photo(chat_id=DELIVERY_CHAT, sql_con=sql_con, order_id=order_id, chat= 'delivery_group', bot = bot, photo=data['path_image'], caption = callback.message.text.replace("ЗАКАЗ В РАБОТЕ\n", "НОВЫЙ ЗАКАЗ\n") + "\n\n Перед тем как взять заказ неободимо зарегистрироваться в <b><a href='https://t.me/Izhukov_test_bot'>боте</a></b>", reply_markup=kb.delivery_group_keyboard)
     await callback.answer()
 
 

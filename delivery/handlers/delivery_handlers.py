@@ -49,22 +49,27 @@ async def change_order(callback: types.CallbackQuery, state: FSMContext, sql_con
         order_text_to_wh_admin = f"Заказ принят курьером -- {callback.from_user.full_name}\n\n{order_message}"
         order_text_deliver = f"Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.\n\n{order_message}"
         
-        media_to_deliver, message_to_deliver = await func.send_photo(chat_id=callback.from_user.id, bot = bot, photo=data['path_image'], caption = order_text_deliver, reply_markup=kb.delivery_private_keyboard)
-
-        sql_con.modify_order(order_id, 'delivery_private_messageid', message_to_deliver.message_id)
-        sql_con.modify_order(order_id, 'delivery_private_mediaid', '|'.join([str(x.message_id) for x in media_to_deliver]))
+        await func.send_photo(chat_id=callback.from_user.id, sql_con=sql_con, order_id=order_id, chat= 'delivery_private', bot = bot, photo=data['path_image'], caption = order_text_deliver, reply_markup=kb.delivery_private_keyboard)
 
         await callback.message.delete()#.edit_text(text= f"ЗАКАЗ В РАБОТЕ\n\n{order_message}")
         await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
 
-        if data['admin_group_messageid'] != None:
-            await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= order_text_to_wh_admin, reply_markup=kb.admin_keyboard)
-        else:
-            await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = order_text_to_wh_admin, reply_markup=kb.admin_keyboard)
-        if data['warehouse_messageid'] != None:
-            await bot.edit_message_text(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']), text= order_text_to_wh_admin)
-        else:
-            await func.send_photo(chat_id=WAREHOUSE_CHATID, bot = bot, photo=data['path_image'], caption = order_text_to_wh_admin)
+        try:
+            await func.delete_message(bot, ADMIN_CHATID, data['admin_group_messageid'], data['admin_group_mediaid'])
+        except Exception as e:
+            print(e, order_id)
+        await func.send_photo(chat_id=ADMIN_CHATID, sql_con=sql_con, order_id=order_id, chat= 'admin_group', bot = bot, photo=data['path_image'], caption = order_text_to_wh_admin, reply_markup=kb.admin_keyboard)
+        await func.delete_message(bot, WAREHOUSE_CHATID, data['warehouse_messageid'], data['warehouse_mediaid'])
+        await func.send_photo(chat_id=WAREHOUSE_CHATID, sql_con=sql_con, order_id=order_id, chat= 'warehouse', bot = bot, photo=data['path_image'], caption = order_text_to_wh_admin)
+
+        # if data['admin_group_messageid'] != None:
+        #     await bot.edit_message_text(chat_id = ADMIN_CHATID, message_id = int(data['admin_group_messageid']), text= order_text_to_wh_admin, reply_markup=kb.admin_keyboard)
+        # else:
+        #     await func.send_photo(chat_id=ADMIN_CHATID, bot = bot, photo=data['path_image'], caption = order_text_to_wh_admin, reply_markup=kb.admin_keyboard)
+        # if data['warehouse_messageid'] != None:
+        #     await bot.edit_message_text(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']), text= order_text_to_wh_admin)
+        # else:
+        #     await func.send_photo(chat_id=WAREHOUSE_CHATID, bot = bot, photo=data['path_image'], caption = order_text_to_wh_admin)
         
         await callback.answer()
     except (aiogram.exceptions.TelegramBadRequest, aiogram.exceptions.TelegramForbiddenError) as e:
