@@ -41,29 +41,32 @@ async def close_order(callback: types.CallbackQuery, state: FSMContext, sql_con:
     order_message = texts['texts']['order_info'].format(track= data['track_num'], country = data['country'], address = data['address'], password = data['pass'], desc = data['descriprion'], price = data['price'])
     new_message = f"ЗАКАЗ ЗАКРЫТ\n{order_message}"
 
-    if data['delivery_group_messageid'] != None:
-        try:
-            await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
-            await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
-        except aiogram.exceptions.TelegramBadRequest as e:
-            print(e, '--------', order_id)
-
-    if data['delivery_private_messageid'] != None:
-        if data['deliveryman_id'] != '':
+    if data != None:
+        if data['delivery_group_messageid'] != None:
             try:
-                await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
-                await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+                await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
+                await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
             except aiogram.exceptions.TelegramBadRequest as e:
                 print(e, '--------', order_id)
-    if data['warehouse_messageid'] != None:
-        try:
-            await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
-            await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
-        except aiogram.exceptions.TelegramBadRequest as e:
-            print(e, '--------', order_id)
 
-    await callback.message.edit_text(text=new_message)
-    await callback.answer()
+        if data['delivery_private_messageid'] != None:
+            if data['deliveryman_id'] != '':
+                try:
+                    await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
+                    await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+                except aiogram.exceptions.TelegramBadRequest as e:
+                    print(e, '--------', order_id)
+        if data['warehouse_messageid'] != None:
+            try:
+                await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
+                await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+            except aiogram.exceptions.TelegramBadRequest as e:
+                print(e, '--------', order_id)
+
+        await callback.message.edit_text(text=new_message)
+        await callback.answer()
+    else:
+        print("DATA NONE FOR ORDER ----- ", order_id)
 
 
 @admin_router.callback_query(Text("admin_not_delivered_button"))
