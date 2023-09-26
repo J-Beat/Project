@@ -46,3 +46,9 @@ df.to_csv('test.csv')
 # curs.execute("DELETE  FROM orders WHERE track_num = 'test58';")
 # conn.commit()
 # conn.close()
+
+
+# con = sqlite3.connect(f'database/orders.db')
+# cur = con.cursor()
+# query = f"ALTER TABLE orders ADD COLUMN admin_group_mediaid TEXT;"
+# cur.execute(query)

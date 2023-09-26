@@ -12,6 +12,8 @@ from inspect import getsourcefile
 from os.path import abspath
 import aiogram
 from functions.sql_functions import sql_connect
+import logging
+import aiogram
 
 # from aiogram.types.
 
@@ -76,16 +78,29 @@ async def send_photo(photo:Union[str, list], caption:str, sql_con:Optional[sql_c
     for image in photo:
         image = InputMediaPhoto(media=FSInputFile(image))
         images.append(image)
-    
-    if message != None:
-        returned_mediaid = await message.answer_media_group(media=images)
-        returned_messageid = await message.answer(text= caption, reply_markup= reply_markup)
-    elif (chat_id != None) & (bot != None):
-        returned_mediaid = await bot.send_media_group(chat_id= chat_id, media = images)
-        returned_messageid = await bot.send_message(chat_id= chat_id, text = caption, reply_markup= reply_markup)
-    if sql_con != None:
-        sql_con.modify_order(order_id, f'{chat}_messageid', returned_messageid.message_id)
-        sql_con.modify_order(order_id, f'{chat}_mediaid', '|'.join([str(x.message_id) for x in returned_mediaid]))
+    try:
+        if message != None:
+            returned_mediaid = await message.answer_media_group(media=images)
+            returned_messageid = await message.answer(text= caption, reply_markup= reply_markup)
+        elif (chat_id != None) & (bot != None):
+            returned_mediaid = await bot.send_media_group(chat_id= chat_id, media = images)
+            returned_messageid = await bot.send_message(chat_id= chat_id, text = caption, reply_markup= reply_markup)
+        if sql_con != None:
+            sql_con.modify_order(order_id, f'{chat}_messageid', returned_messageid.message_id)
+            sql_con.modify_order(order_id, f'{chat}_mediaid', '|'.join([str(x.message_id) for x in returned_mediaid]))
+    except aiogram.exceptions.TelegramRetryAfter as e:
+        logging.info(f'{e}, SLEEP 30SEK, --- retry {e.retry_after}')
+        
+        await asyncio.sleep(20)
+        if message != None:
+            returned_mediaid = await message.answer_media_group(media=images)
+            returned_messageid = await message.answer(text= caption, reply_markup= reply_markup)
+        elif (chat_id != None) & (bot != None):
+            returned_mediaid = await bot.send_media_group(chat_id= chat_id, media = images)
+            returned_messageid = await bot.send_message(chat_id= chat_id, text = caption, reply_markup= reply_markup)
+        if sql_con != None:
+            sql_con.modify_order(order_id, f'{chat}_messageid', returned_messageid.message_id)
+            sql_con.modify_order(order_id, f'{chat}_mediaid', '|'.join([str(x.message_id) for x in returned_mediaid]))
     #return returned_mediaid, returned_messageid
 
     
@@ -101,8 +116,9 @@ async def delete_message(bot: Bot, chat: str, message_id: str, media_id: str):
         try:
             await delete_media(media_id, chat, bot)
             await bot.delete_message(chat_id = chat, message_id = int(message_id))
-        except aiogram.exceptions.TelegramBadRequest:
-            pass
+        except aiogram.exceptions.TelegramBadRequest as e:
+            await bot.edit_message_text(text = " ------------------ ", chat_id= chat, message_id= int(message_id))
+            logging.info(e)
 
 
 texts = run_to_dict(get_texts('main'))

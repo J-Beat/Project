@@ -1,4 +1,3 @@
 #!/bin/bash
-cd /home/ivan/Projects/git/Project/delivery
-source /home/ivan/Projects/git/Project/lisa_bot/bot_env/bin/activate
+cd /root/ivan/Project/delivery
 python3 first_bot_main.py

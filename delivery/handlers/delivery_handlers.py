@@ -24,6 +24,7 @@ import sqlite3
 import re
 import datetime as dt
 import logging
+import asyncio
 
 
 ADMIN_CHATID = func.get_config("CHATS_ID", "ADMIN_CHAT")
@@ -49,14 +50,13 @@ async def change_order(callback: types.CallbackQuery, state: FSMContext, sql_con
         order_text_to_wh_admin = f"Заказ принят курьером -- {callback.from_user.full_name}\n\n{order_message}"
         order_text_deliver = f"Вы взяли новый заказ. Если вы не заберете заказ в течении 12 часов, он автоматически отменится.\n\n{order_message}"
         
+        await func.delete_message(bot, DELIVERY_CHAT, data['delivery_group_messageid'], data['delivery_group_mediaid'])
+        await asyncio.sleep(2)
         await func.send_photo(chat_id=callback.from_user.id, sql_con=sql_con, order_id=order_id, chat= 'delivery_private', bot = bot, photo=data['path_image'], caption = order_text_deliver, reply_markup=kb.delivery_private_keyboard)
-
-        await callback.message.delete()#.edit_text(text= f"ЗАКАЗ В РАБОТЕ\n\n{order_message}")
-        await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
-
         try:
             await func.delete_message(bot, ADMIN_CHATID, data['admin_group_messageid'], data['admin_group_mediaid'])
         except Exception as e:
+            logging.info(e)
             print(e, order_id)
         await func.send_photo(chat_id=ADMIN_CHATID, sql_con=sql_con, order_id=order_id, chat= 'admin_group', bot = bot, photo=data['path_image'], caption = order_text_to_wh_admin, reply_markup=kb.admin_keyboard)
         await func.delete_message(bot, WAREHOUSE_CHATID, data['warehouse_messageid'], data['warehouse_mediaid'])
@@ -74,3 +74,4 @@ async def change_order(callback: types.CallbackQuery, state: FSMContext, sql_con
         await callback.answer()
     except (aiogram.exceptions.TelegramBadRequest, aiogram.exceptions.TelegramForbiddenError) as e:
         logging.info(e)
+        print('deliwery in work ERROR ---- ', e)

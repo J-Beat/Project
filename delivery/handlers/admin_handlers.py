@@ -23,6 +23,7 @@ import datetime as dt
 import sqlite3
 import re
 import aiogram
+import logging
 
 
 ADMIN_CHATID = func.get_config("CHATS_ID", "ADMIN_CHAT")
@@ -44,24 +45,30 @@ async def close_order(callback: types.CallbackQuery, state: FSMContext, sql_con:
     if data != None:
         if data['delivery_group_messageid'] != None:
             try:
-                await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
-                await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+                # await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
+                # await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+                await func.delete_message(bot, DELIVERY_CHAT, data['delivery_group_messageid'], data['delivery_group_mediaid'])
             except aiogram.exceptions.TelegramBadRequest as e:
                 print(e, '--------', order_id)
+                logging.info(f"{e} -- {order_id}")
 
         if data['delivery_private_messageid'] != None:
             if data['deliveryman_id'] != '':
                 try:
-                    await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
-                    await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+                    # await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
+                    # await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+                    await func.delete_message(bot, data['deliveryman_id'], data['delivery_private_messageid'], data['delivery_private_mediaid'])
                 except aiogram.exceptions.TelegramBadRequest as e:
                     print(e, '--------', order_id)
+                    logging.info(f"{e} -- {order_id}")
         if data['warehouse_messageid'] != None:
             try:
-                await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
-                await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+                # await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
+                # await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+                await func.delete_message(bot, WAREHOUSE_CHATID, data['warehouse_messageid'], data['warehouse_mediaid'])
             except aiogram.exceptions.TelegramBadRequest as e:
                 print(e, '--------', order_id)
+                logging.info(f"{e} -- {order_id}")
 
         await callback.message.edit_text(text=new_message)
         await callback.answer()
@@ -83,24 +90,30 @@ async def order_not_delivered(callback: types.CallbackQuery, state: FSMContext, 
     if data != None:
         if data['delivery_group_messageid'] != None:
             try:
-                await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
-                await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+                # await bot.delete_message(chat_id = DELIVERY_CHAT, message_id = int(data['delivery_group_messageid']))
+                # await delete_media(data['delivery_group_mediaid'], DELIVERY_CHAT, bot)
+                await func.delete_message(bot, DELIVERY_CHAT, data['delivery_group_messageid'], data['delivery_group_mediaid'])
             except aiogram.exceptions.TelegramBadRequest as e:
                 print(e, '--------', order_id)
+                logging.info(f"{e} -- {order_id}")
 
         if data['delivery_private_messageid'] != None:
             if data['deliveryman_id'] != '':
                 try:
-                    await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
-                    await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+                    # await bot.delete_message(chat_id = data['deliveryman_id'], message_id = int(data['delivery_private_messageid']))
+                    # await delete_media(data['delivery_private_mediaid'], data['deliveryman_id'], bot)
+                    await func.delete_message(bot, data['deliveryman_id'], data['delivery_private_messageid'], data['delivery_private_mediaid'])
                 except aiogram.exceptions.TelegramBadRequest as e:
                     print(e, '--------', order_id)
+                    logging.info(f"{e} -- {order_id}")
         if data['warehouse_messageid'] != None:
             try:
-                await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
-                await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+                # await bot.delete_message(chat_id = WAREHOUSE_CHATID, message_id = int(data['warehouse_messageid']))
+                # await delete_media(data['warehouse_mediaid'], WAREHOUSE_CHATID, bot)
+                await func.delete_message(bot, WAREHOUSE_CHATID, data['warehouse_messageid'], data['warehouse_mediaid'])
             except aiogram.exceptions.TelegramBadRequest as e:
                 print(e, '--------', order_id)
+                logging.info(f"{e} -- {order_id}")
     else:
         print(f'NOT DATA FOR ORDER ----- {order_id}')
 
